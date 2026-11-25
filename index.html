@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estás invitado a mi cumpleaños #14</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="Estilo.css">
+</head>
+<body>
+
+  <div id="inicio">
+    <button id="abrir">Abrir tarjeta 🎁</button>
+  </div>
+
+  <main id="escena" hidden>
+    <div id="globos" aria-hidden="true"></div>
+
+    <img class="gato arriba-derecha" alt=""
+         src="https://media1.tenor.com/m/d-HSksPE2dMAAAAC/cat-dance-happy-dance-cat.gif">
+    <img class="gato abajo-izquierda" alt=""
+         src="https://media1.tenor.com/m/0-B0BdFppe0AAAAC/penguin-clapping.gif">
+
+    <div id="texto"></div>
+    <button id="repetir" hidden>Ver otra vez</button>
+  </main>
+
+  <p id="reloj" hidden style="position:fixed;top:8px;left:8px;z-index:99;font:16px sans-serif;background:#fff;color:#000;padding:4px 10px;border-radius:8px;border:2px solid #000"></p>
+
+  <audio id="musica" src="cancion.mp3" preload="auto"></audio>
+
+  <script>
+    // ---------- Música ----------
+    const INICIO_SEG = 52;
+    const musica = document.getElementById("musica");
+    let bajada;
+
+    function sonar() {
+      clearInterval(bajada);
+      musica.volume = 1;
+      musica.currentTime = INICIO_SEG;
+      musica.play().catch(() => {});
+    }
+
+    // ---------- Datos de la invitación ----------
+    const EDAD      = "14";
+    const FECHA     = "12/12/2026";
+    const HORA      = "6:00 P.M";
+    const DIRECCION = "Carrera 4 #34-19";
+
+    const ROSA = "#ff4d6d", AZUL = "#3a86ff", MORADO = "#9b5de5",
+          NARANJA = "#ffa600", VERDE = "#2ecc71", CIAN = "#00b4d8";
+
+    const escenas = [
+      { t: 53, lineas: [["Y todo el mundo", AZUL], ["le cantaba", MORADO]] },
+      { t: 55, lineas: [["Que los cumplas", NARANJA], ["¡feliz!", VERDE]] },
+      { t: 58, lineas: [["Que los cumplas", ROSA], ["¡feliz!", AZUL]] },
+      { t: 61, lineas: [["Porque todos", CIAN], ["te queremos", ROSA]] },
+      { t: 65, lineas: [["Que los cumplas", NARANJA], ["¡feliz!", VERDE]]
+      }
+    ];
+
+    const T_INVITACION = 68;
+
+    // ---------- Final de la tarjeta ----------
+    const PAUSA_FINAL = 10;
+    const FADE_SEG = 4;
+
+    // ---------- Globos ----------
+    const CANTIDAD_GLOBOS = 16;
+    const COLORES = ["#ff4d6d", "#ffd23f", "#3ddc84", "#3a86ff", "#9b5de5", "#ff9f1c"];
+
+    const inicio  = document.getElementById("inicio");
+    const escena  = document.getElementById("escena");
+    const texto   = document.getElementById("texto");
+    const globos  = document.getElementById("globos");
+    const repetir = document.getElementById("repetir");
+    const reloj   = document.getElementById("reloj");
+
+    function crearGlobos() {
+      globos.innerHTML = "";
+
+      for (let i = 0; i < CANTIDAD_GLOBOS; i++) {
+        const g = document.createElement("span");
+        g.className = "globo";
+        g.style.left = (Math.random() * 94) + "%";
+        g.style.setProperty("--ancho", (42 + Math.random() * 38) + "px");
+        g.style.setProperty("--vaiven", (Math.random() * 60 - 30) + "px");
+        g.style.background = COLORES[i % COLORES.length];
+        g.style.animationDuration = (9 + Math.random() * 7) + "s";
+        g.style.animationDelay = (-Math.random() * 14) + "s";
+        globos.appendChild(g);
+      }
+    }
+
+    // ---------- Mostrar frases ----------
+    function mostrarEscena(i) {
+      texto.innerHTML = "";
+      let n = 0;
+
+      escenas[i].lineas.forEach(([frase, color]) => {
+        const linea = document.createElement("p");
+        linea.className = "linea";
+        linea.style.color = color;
+
+        frase.split(" ").forEach(palabra => {
+          const s = document.createElement("span");
+          s.className = "palabra";
+          s.textContent = palabra;
+          s.style.animationDelay = (n++ * 0.3) + "s";
+          linea.appendChild(s);
+        });
+
+        texto.appendChild(linea);
+      });
+    }
+
+    // ---------- Escena final ----------
+    let temporizadorRepetir;
+
+    function mostrarInvitacion() {
+      const titulo = [
+        ["¡Estás", "#ff4d6d"],
+        ["invitado", "#3a86ff"],
+        ["a", "#ffa600"],
+        ["mi", "#2ecc71"],
+        ["cumpleaños!", "#9b5de5"]
+      ]
+        .map(([p, c]) => `<span style="color:${c}">${p}</span>`)
+        .join(" ");
+
+      texto.innerHTML = `
+        <div class="invitacion">
+          <p class="inv-titulo pieza" style="--d:0s">${titulo}</p>
+
+          <div class="inv-numero pieza" style="--d:.5s; --giro:-6deg">
+            <span>#${EDAD}</span>
+          </div>
+
+          <p class="chip fecha pieza" style="--d:1.1s; --giro:-2deg">
+            📅 ${FECHA}
+          </p>
+
+          <p class="chip hora pieza" style="--d:1.6s; --giro:1.5deg">
+            🕕 ${HORA}
+          </p>
+
+          <p class="chip lugar pieza" style="--d:2.1s; --giro:-2deg">
+            📍 ${DIRECCION}
+          </p>
+
+          <p class="inv-final pieza" style="--d:2.7s">
+            ¡Te espero! 🎉
+          </p>
+        </div>`;
+
+      // El botón queda dentro de la tarjeta, debajo del mensaje
+      document.querySelector(".invitacion").appendChild(repetir);
+
+      temporizadorRepetir = setTimeout(() => {
+        repetir.hidden = false;
+      }, 3700);
+    }
+
+    // ---------- Sincronizar con la canción ----------
+    let actual = null;
+    let cuadro;
+
+    function estadoPara(t) {
+      if (t >= T_INVITACION) return "inv";
+
+      let idx = -1;
+      escenas.forEach((e, i) => {
+        if (t >= e.t) idx = i;
+      });
+
+      return idx;
+    }
+
+    // ---------- Terminar ----------
+    function terminar() {
+      globos.classList.add("fin");
+
+      setTimeout(() => {
+        if (globos.classList.contains("fin")) {
+          globos.innerHTML = "";
+        }
+      }, 3200);
+
+      clearInterval(bajada);
+
+      bajada = setInterval(() => {
+        musica.volume = Math.max(0, musica.volume - 1 / (FADE_SEG * 20));
+
+        if (musica.volume <= 0) {
+          clearInterval(bajada);
+          musica.pause();
+        }
+      }, 50);
+
+      repetir.hidden = false;
+    }
+
+    musica.addEventListener("ended", () => {
+      cancelAnimationFrame(cuadro);
+
+      if (actual !== "inv") {
+        actual = "inv";
+        mostrarInvitacion();
+      }
+
+      terminar();
+    });
+
+    function seguir() {
+      const t = musica.currentTime;
+
+      if (t >= T_INVITACION + PAUSA_FINAL) {
+        terminar();
+        return;
+      }
+
+      const nuevo = estadoPara(t);
+
+      if (nuevo !== actual) {
+        actual = nuevo;
+
+        if (nuevo === "inv") {
+          mostrarInvitacion();
+        } else if (nuevo >= 0) {
+          mostrarEscena(nuevo);
+        } else {
+          texto.innerHTML = "";
+        }
+      }
+
+      if (!reloj.hidden) {
+        reloj.textContent = "Canción: " + t.toFixed(1) + " s";
+      }
+
+      cuadro = requestAnimationFrame(seguir);
+    }
+
+    function empezar() {
+      cancelAnimationFrame(cuadro);
+      clearTimeout(temporizadorRepetir);
+
+      repetir.hidden = true;
+      texto.innerHTML = "";
+      actual = null;
+
+      seguir();
+    }
+
+    // ---------- Reloj de ayuda ----------
+    document.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "t") {
+        reloj.hidden = !reloj.hidden;
+      }
+    });
+
+    // ---------- Abrir tarjeta ----------
+    document.getElementById("abrir").addEventListener("click", () => {
+      inicio.hidden = true;
+      escena.hidden = false;
+
+      sonar();
+      crearGlobos();
+      empezar();
+    });
+
+    // ---------- Repetir invitación ----------
+    repetir.addEventListener("click", () => {
+      globos.classList.remove("fin");
+      crearGlobos();
+      sonar();
+      empezar();
+    });
+
+  </script>
+</body>
+</html>
